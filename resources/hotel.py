@@ -1,48 +1,56 @@
 from flask_restful import Resource, reqparse
-
-lista_hoteis = [
-    { "hotel_id": "sky", "nome": "Hotel Sky", "estrelas": 4.8, "diaria": 195.99, "cidade": "Porto"},
-    { "hotel_id": "paraiso", "nome": "Paraiso Resort", "estrelas": 4.9, "diaria": 299.99, "cidade": "Lisboa"},
-    { "hotel_id": "water", "nome": "Hotel Water", "estrelas": 4.5, "diaria": 175.99, "cidade": "Famalicão"}
-]
-
+from models.hotel import HotelModel
 class Hoteis(Resource):
     def get(self):
-        return { "hoteis": lista_hoteis }
-
+        return { "hoteis": [hotel.json() for hotel in HotelModel.query.all()] }
 class Hotel(Resource):
     argumentos = reqparse.RequestParser()
     argumentos.add_argument("nome", type=str, required=True, help="Nome obrigatório")
-    argumentos.add_argument("estrelas", type=float, required=True, help="Estrelas obrigatório")
-    argumentos.add_argument("diaria", type=float, required=True, help="Diária obrigatório")
-    argumentos.add_argument("cidade", type=str, required=True, help="Cidade obrigatório")
-   
+    argumentos.add_argument("estrelas", type=float, required=True, help="Estrelas obrigatórias")
+    argumentos.add_argument("diaria", type=float, required=True, help="Diaria obrigatória")
+    argumentos.add_argument("cidade", type=str, required=True, help="Cidade obrigatória")
+    
     def get(self, id_hotel):
-        for hotel in lista_hoteis:
-            if hotel["hotel_id"] == id_hotel:
-                return hotel, 200
-        return { "message": "Hotel not found" }, 404
-   
-    def post(self,id_hotel):
+        hotel = HotelModel.find_hotel(id_hotel)
+        if hotel:
+            return hotel.json(), 200
+        return {"message": "Hotel not found"}, 404 # NOT FOUND
+    def post(self, id_hotel):
         dados = Hotel.argumentos.parse_args() # Dicionário
-        for hotel in lista_hoteis:
-            if hotel["hotel_id"] == id_hotel:
-                return { "message": "Hotel with this id already exists"}
-        novo_hotel = { "hotel_id": id_hotel, **dados }
-        lista_hoteis.append(novo_hotel)
-        return novo_hotel, 200
-   
-    def put(self,id_hotel):
+        hotel = HotelModel.find_hotel(id_hotel)
+        if hotel:
+            return { "message": "Hotel with this id already exists"}
+        
+        try:
+            novo_hotel = HotelModel(id_hotel, **dados)
+            novo_hotel.save_hotel()
+            return novo_hotel.json(), 200 # CREATED
+        except:
+            return { "message": "Internal error ..."}, 500 # INTERNAL ERROR
+    def put(self, id_hotel):
         dados = Hotel.argumentos.parse_args() # Dicionário
-        for hotel in lista_hoteis:
-            if hotel["hotel_id"] == id_hotel:
-                hotel.update(**dados)
-                return hotel, 200
-        novo_hotel = { "hotel_id": id_hotel, **dados }
-        lista_hoteis.append(novo_hotel)
-        return novo_hotel, 201
-
+        hotel = HotelModel.find_hotel(id_hotel)
+        if hotel:
+            try:
+                hotel.update_hotel(dados["nome"],dados["estrelas"],dados["diaria"],["cidade"])
+                hotel.save_hotel()
+                return hotel.json(), 200 # UPDATED
+            except:
+                return { "message": "Internal error ..."}, 500 # INTERNAL ERROR
+            
+        try:
+            novo_hotel = HotelModel(id_hotel, **dados)
+            novo_hotel.save_hotel()
+            return novo_hotel.json(), 201 # CREATED
+        except:
+            return { "message": "Internal error ..."}, 500 # INTERNAL ERROR
+     
     def delete(self, id_hotel):
-        global lista_hoteis
-        lista_hoteis = [hotel for hotel in lista_hoteis if hotel["hotel_id"] != id_hotel]
-        return {"message": "Hotel deleted"}
+        hotel = HotelModel.find_hotel(id_hotel)
+        if hotel:
+            try:
+                hotel.delete_hotel()
+                return {"message": "Hotel deleted"}, 200 # DELETED
+            except:
+                return { "message": "Internal error ..."}, 500 # INTERNAL ERROR
+        return {"message": "Hotel not found"}, 404 # NOT FOUND

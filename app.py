@@ -3,8 +3,10 @@ from flask_restful import Resource, Api
 from resources.hotel import Hoteis, Hotel
 from conexao import bd
 app = Flask(__name__)
-api = Api(app)
 # Configurações
+app.config["SLQALCHEMY_DATABASE_URI"] = "sqlite:///hoteis.db"
+app.config["SLQALCHEMY_TRACK_MODIFICATIONS"] = False
+api = Api(app)
 # Rotas
 api.add_resource(Hoteis,"/hoteis")
 api.add_resource(Hotel,"/hoteis/<string:id_hotel>")
