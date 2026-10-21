@@ -3,7 +3,7 @@ class HotelModel(bd.Model):
     __tablename__ = "hoteis"
     hotel_id = bd.Column(bd.String, primary_key=True)
     nome = bd.Column(bd.String(80))
-    estelas = bd.Column(bd.Float(precision=1))
+    estrelas = bd.Column(bd.Float(precision=1))
     diaria = bd.Column(bd.Float(precision=2))
     cidade = bd.Column(bd.String(80))
     
@@ -25,7 +25,8 @@ class HotelModel(bd.Model):
         
     @classmethod
     def find_hotel(cls, id_hotel):
-        hotel = cls.query.filter_by(hotel_id=id_hotel).first() # SELECT * FROM hoteis WHERE hotel_id = id_hotel LIMIT 1
+        hotel = cls.query.filter_by(hotel_id=id_hotel).first() 
+        # SELECT * FROM hoteis WHERE hotel_id = id_hotel LIMIT 1
         if hotel:
             return hotel
         return None
