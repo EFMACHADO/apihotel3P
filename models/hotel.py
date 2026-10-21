@@ -7,3 +7,6 @@ class HotelModel(bd.Model):
     estrelas = bd.Column(bd.Float(precision=1))
     diaria = bd.Column(bd.Float(precision=2))
     cidade = bd.Column(bd.string(80))
+
+    def __init__(self):
+        super().__init__()
