@@ -1,6 +1,7 @@
 from flask import Flask;
 from flask_restful import Resource, Api
 from resources.hotel import Hoteis, Hotel
+from resources.user import User, UserRegister, UserLogin, UserLogout
 from conexao import bd
 app = Flask(__name__)
 # Configurações
